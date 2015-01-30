@@ -1,0 +1,26 @@
+{
+  "content_scripts": [ {
+      "js": [ "scripts/app.js" ],
+      "matches": [ "http://localhost/*", "file:///*" ]
+   } ],
+
+  "manifest_version": 2,
+  "name": "Articulate Speech Controls",
+  "short_name": "ArticulateVR",
+  "version": "0.1.0.0",
+
+  "minimum_chrome_version": "40.0.0.0",
+  "permissions": [ "tabs" ],
+
+  "description": "Add ",
+  "icons": {
+    "16" : "media/icon-16.png",
+    "32" : "media/icon-32.png",
+    "48" : "media/icon-48.png",
+    "64" : "media/icon-64.png",
+    "128" : "media/icon-128.png"
+  },
+
+  "web_accessible_resources": [ "media/sprites.png", "media/icon-16.png" ]
+
+}
