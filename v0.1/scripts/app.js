@@ -14,7 +14,9 @@ var app = {
       var button = document.querySelector('[data-voice="' + transcript + '"]');
       if (button) {
         console.log(transcript);
-        button.dispatchEvent(new MouseEvent("click"));
+        var evt = document.createEvent('MouseEvents');
+        evt.initEvent('click', true, false);
+        button.dispatchEvent(evt);
         app.flashRecognized();
       }
     }
