@@ -9,42 +9,64 @@ var app = {
     back: 'sendClick'
   },
 
-  methods: {
+  getEl : function(item) {
+    var selector = ['[data-voice=', item, ']' ].join('"');
+    return document.querySelector(selector);
+  },
+
+  directMethods: {
     sendClick: function(transcript) {
-      var button = document.querySelector('[data-voice="' + transcript + '"]');
-      if (button) {
+      var el = app.getEl(transcript);
+      if (el) {
         console.log(transcript);
         var evt = document.createEvent('MouseEvents');
         evt.initEvent('click', true, false);
-        button.dispatchEvent(evt);
+        el.dispatchEvent(evt);
         app.flashRecognized();
       }
+    },
+    focusObject: function(transcript) {
+      var el = app.getEl(transcript);
+      el.focus();
+      app.flashRecognized();
     }
   },
 
-  onResult : function(evt) {
+  onResult : function(evt, callback) {
     var result, transcript,
         results = slice.call(evt.results, evt.resultIndex);
 
     results.forEach(function(result) {
       if (!result.isFinal) { return; }
+      var transcript = result[0].transcript.trim().toLowerCase();
+      callback(transcript);
+    });
+  },
 
-      var transcript = result[0].transcript.trim().toLowerCase(),
-          method = app.config[transcript];
+  onMessageResult : function(evt) {
+    var callback = function(transcript) {
+      window.postMessage({ type: 'voiceExtension', text: transcript}, '*');
+    };
+    app.onResult(evt, callback);
+  },
+
+  onDirectResult : function(evt) {
+    var callback = function(transcript) {
+      var method = app.config[transcript];
 
       if (method != null) {
-        app.methods[method](transcript);
+        app.directMethods[method](transcript);
       }
-
-    });
+    }
+    app.onResult(evt, callback);
   },
 
   flashRecognized: function() {
     document.body.style.backgroundColor = 'red';
-    window.requestAnimationFrame(function() {
+    setTimeout(function() {
       document.body.style.transition = "background-color 0.5s ease";
       document.body.style.backgroundColor = '';
-    });
+    }, 42);
   }
 
 }
@@ -55,7 +77,7 @@ var Voice = function() {
   this.recognition.interimResults = false;
   this.recognition.lang = 'en-US';
   this.listeners = {};
-}
+};
 
 var voiceProto = {
 
@@ -92,10 +114,17 @@ var voiceProto = {
     return this;
   }
 
-}
+};
 
 Voice.prototype = voiceProto;
 
-app.voice = new Voice();
+(function() {
+  var method;
+  if (document.querySelector('.voice-enabled')) {
+    app.voice = new Voice();
+    method = (document.querySelector('.voice-message') == null) ?
+      'onDirectResult' : 'onMessageResult';
+    app.voice.start().addListener('result', app[method]);
+  }
+}());
 
-app.voice.start().addListener('result', app.onResult);
